@@ -230,17 +230,16 @@ rows.forEach(row => {
 const cols = row.split(",");
 
 // סדר לפי השדות בגוגל שיטס
-const name = cols[0];
-const owner = cols[1];
-const category = cols[2];
-const service = cols[3];
-const about = cols[4];
-const benefit = cols[5];
-const phone = cols[6];
-const image = cols[7];
-
-if(!name) return;
-
+const name = cols[1];
+const owner = cols[2];
+const category = cols[3];
+const service = cols[4];
+const about = cols[5];
+const benefit = cols[6];
+const phone = cols[7];
+const image = cols[8];
+  
+if (!cols || cols.length < 8) return;
 categoriesSet.add(category);
 
 // טלפון לוואטסאפ
