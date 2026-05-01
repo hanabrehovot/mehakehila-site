@@ -205,112 +205,124 @@ style="padding:12px; border-radius:8px; border:1px solid #ccc;">
 כל הזכויות שמורות לקהילת החינוך הביתי רחובות והסביבה 2026
 
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
 
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_jPr4j0BSIIYW9RIOZWDc_5SvGCMIQJPJeP1UNt-CfcT9hvoyFXhzTyE3Fq4EnDZEweqoEEEIZ4Gx/pub?output=csv";
+const sheetURL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS_jPr4j0BSIIYW9RIOZWDc_5SvGCMIQJPJeP1UNt-CfcT9hvoyFXhzTyE3Fq4EnDZEweqoEEEIZ4Gx/pub?output=csv";
 
-fetch(sheetURL)
-.then(response => response.text())
-.then(data => {
-
-const rows = data.split("\n").slice(1);
 const container = document.getElementById("businessContainer");
 const searchInput = document.getElementById("searchInput");
 const categoryFilter = document.getElementById("categoryFilter");
 
 let allCards = [];
-let categoriesSet = new Set();
+let categories = new Set();
 
-container.innerHTML = "";
+Papa.parse(sheetURL, {
 
-// יצירת כרטיסים
-rows.forEach(row => {
+  download: true,
+  header: true,
+  skipEmptyLines: true,
 
-const cols = row.split(",");
+  complete: function(results){
 
-// סדר לפי השדות בגוגל שיטס
-const name = cols[1];
-const owner = cols[2];
-const category = cols[3];
-const service = cols[4];
-const about = cols[5];
-const benefit = cols[6];
-const phone = cols[7];
-const image = cols[8];
-  
-if (!cols || cols.length < 8) return;
-categoriesSet.add(category);
+    container.innerHTML = "";
 
-// טלפון לוואטסאפ
-let cleanPhone = phone.replace(/[^0-9]/g, "");
-if(cleanPhone.startsWith("0")){
-cleanPhone = "972" + cleanPhone.substring(1);
-}
+    results.data.forEach(row => {
 
-const card = document.createElement("div");
-card.className = "card";
+      const name = row["שם העסק"] || "";
+      const category = row["קטגוריה"] || "";
+      const service = row["מה השירות"] || "";
+      const about = row["קצת עליי"] || "";
+      const benefit = row["הטבה לקהילה"] || "";
+      const phone = row["טלפון"] || "";
+      const image = row["קישור לתמונה"] || "";
 
-card.innerHTML = `
+      if(!name) return;
 
-${image ? `<img src="${image}" style="width:100%; border-radius:10px; margin-bottom:10px;">` : ""}
+      categories.add(category);
 
-<h3>${name}</h3>
+      let cleanPhone = "";
 
-<p><strong>קטגוריה:</strong> ${category}</p>
-<p><strong>מה השירות:</strong> ${service}</p>
-<p><strong>קצת עליי:</strong> ${about}</p>
-<p><strong>הטבה:</strong> ${benefit}</p>
+      if(phone){
+        cleanPhone = phone.replace(/\D/g,"");
 
-${phone ? `<a href="https://wa.me/${cleanPhone}" target="_blank" style="display:inline-block; margin-top:10px; background:#25D366; color:white; padding:10px 16px; border-radius:8px; text-decoration:none;">שליחת הודעה בוואטסאפ</a>` : ""}
+        if(cleanPhone.startsWith("0")){
+          cleanPhone = "972" + cleanPhone.substring(1);
+        }
+      }
 
-`;
+      const card = document.createElement("div");
+      card.className = "card";
 
-container.appendChild(card);
+      card.innerHTML = `
 
-allCards.push({
-element: card,
-name,
-service,
-category
+      ${image ? `<img src="${image}" style="width:100%; border-radius:10px; margin-bottom:10px;">` : ""}
+
+      <h3>${name}</h3>
+
+      <p><strong>קטגוריה:</strong> ${category}</p>
+      <p><strong>מה השירות:</strong> ${service}</p>
+      <p><strong>קצת עליי:</strong> ${about}</p>
+      <p><strong>הטבה:</strong> ${benefit}</p>
+
+      ${cleanPhone ? `
+      <a href="https://wa.me/${cleanPhone}" target="_blank">
+      שליחת הודעה בוואטסאפ
+      </a>` : ""}
+
+      `;
+
+      container.appendChild(card);
+
+      allCards.push({
+        element: card,
+        name,
+        category,
+        service
+      });
+
+    });
+
+    categories.forEach(cat => {
+
+      const option = document.createElement("option");
+
+      option.value = cat;
+      option.textContent = cat;
+
+      categoryFilter.appendChild(option);
+
+    });
+
+  }
+
 });
 
-});
-
-// יצירת קטגוריות (רק פעם אחת!)
-categoriesSet.forEach(cat => {
-const option = document.createElement("option");
-option.value = cat;
-option.textContent = cat;
-categoryFilter.appendChild(option);
-});
-
-// פונקציית סינון
 function filterCards(){
 
-const searchValue = searchInput.value.toLowerCase();
-const selectedCategory = categoryFilter.value;
+  const search = searchInput.value.toLowerCase();
+  const selected = categoryFilter.value;
 
-allCards.forEach(item => {
+  allCards.forEach(item => {
 
-const matchSearch =
-item.name.toLowerCase().includes(searchValue) ||
-item.service.toLowerCase().includes(searchValue);
+    const matchSearch =
+      item.name.toLowerCase().includes(search) ||
+      item.service.toLowerCase().includes(search);
 
-const matchCategory =
-selectedCategory === "all" || item.category === selectedCategory;
+    const matchCategory =
+      selected === "all" || item.category === selected;
 
-item.element.style.display =
-(matchSearch && matchCategory) ? "block" : "none";
+    item.element.style.display =
+      (matchSearch && matchCategory) ? "block" : "none";
 
-});
+  });
 
 }
 
 searchInput.addEventListener("input", filterCards);
 categoryFilter.addEventListener("change", filterCards);
-
-});
 
 </script>
 
