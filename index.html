@@ -208,7 +208,7 @@ style="padding:12px; border-radius:8px; border:1px solid #ccc;">
 
 <script>
 
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_jPr4j0BSIIYW9RIOZWDc_5SvGCMIQJPJeP1UNt-CfcT9hvoyFXhzTyE3Fq4EnDZEweqoEEEIZ4Gx/pub?output=csv"; //
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_jPr4j0BSIIYW9RIOZWDc_5SvGCMIQJPJeP1UNt-CfcT9hvoyFXhzTyE3Fq4EnDZEweqoEEEIZ4Gx/pub?output=csv";
 
 fetch(sheetURL)
 .then(response => response.text())
@@ -216,55 +216,20 @@ fetch(sheetURL)
 
 const rows = data.split("\n").slice(1);
 const container = document.getElementById("businessContainer");
-
 const searchInput = document.getElementById("searchInput");
 const categoryFilter = document.getElementById("categoryFilter");
 
 let allCards = [];
 let categoriesSet = new Set();
 
-// מנקה כרטיסים קיימים
 container.innerHTML = "";
 
+// יצירת כרטיסים
 rows.forEach(row => {
 
-// יצירת קטגוריות בתפריט
-categoriesSet.forEach(cat => {
-const option = document.createElement("option");
-option.value = cat;
-option.textContent = cat;
-categoryFilter.appendChild(option);
-});
-
-function filterCards(){
-
-const searchValue = searchInput.value.toLowerCase();
-const selectedCategory = categoryFilter.value;
-
-allCards.forEach(item => {
-
-const matchSearch =
-item.name.toLowerCase().includes(searchValue) ||
-item.service.toLowerCase().includes(searchValue);
-
-const matchCategory =
-selectedCategory === "all" || item.category === selectedCategory;
-
-if(matchSearch && matchCategory){
-item.element.style.display = "block";
-} else {
-item.element.style.display = "none";
-}
-
-});
-
-}
-
-searchInput.addEventListener("input", filterCards);
-categoryFilter.addEventListener("change", filterCards);
 const cols = row.split(",");
 
-// ⚠️ סדר חייב להיות כמו בטופס!
+// סדר לפי השדות בגוגל שיטס
 const name = cols[0];
 const owner = cols[1];
 const category = cols[2];
@@ -272,12 +237,13 @@ const service = cols[3];
 const about = cols[4];
 const benefit = cols[5];
 const phone = cols[6];
-const image = cols[7]; // 👈 שדה חדש לתמונה
+const image = cols[7];
 
 if(!name) return;
 
 categoriesSet.add(category);
-// 🔵 טיפול בטלפון → הופך לוואטסאפ
+
+// טלפון לוואטסאפ
 let cleanPhone = phone.replace(/[^0-9]/g, "");
 if(cleanPhone.startsWith("0")){
 cleanPhone = "972" + cleanPhone.substring(1);
@@ -311,6 +277,39 @@ category
 });
 
 });
+
+// יצירת קטגוריות (רק פעם אחת!)
+categoriesSet.forEach(cat => {
+const option = document.createElement("option");
+option.value = cat;
+option.textContent = cat;
+categoryFilter.appendChild(option);
+});
+
+// פונקציית סינון
+function filterCards(){
+
+const searchValue = searchInput.value.toLowerCase();
+const selectedCategory = categoryFilter.value;
+
+allCards.forEach(item => {
+
+const matchSearch =
+item.name.toLowerCase().includes(searchValue) ||
+item.service.toLowerCase().includes(searchValue);
+
+const matchCategory =
+selectedCategory === "all" || item.category === selectedCategory;
+
+item.element.style.display =
+(matchSearch && matchCategory) ? "block" : "none";
+
+});
+
+}
+
+searchInput.addEventListener("input", filterCards);
+categoryFilter.addEventListener("change", filterCards);
 
 });
 
